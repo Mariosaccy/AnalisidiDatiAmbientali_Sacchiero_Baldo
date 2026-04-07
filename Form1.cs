@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System.Net;
+using System.IO;
 
 namespace AnalisidiDatiAmbientali_Sacchiero_Baldo
 {
@@ -120,6 +121,13 @@ I risultati dell’analisi dovranno essere presentati tramite:
             // se il link è valido, mostra un messaggio di conferma
             MessageBox.Show("Link valido, puoi procedere con la raccolta dei dati");
 
+            // prende i dati da un possibile file dati.json creato in precenza
+            if (File.Exists("dati.json"))
+            {
+                string json = File.ReadAllText("dati.json");
+                dati = JsonConvert.DeserializeObject<List<Cdato>>(json);
+            }
+
             pnl_luogo.Visible = false;
             pnl_dati.Visible = true;
 
@@ -160,6 +168,17 @@ I risultati dell’analisi dovranno essere presentati tramite:
             {
                 MessageBox.Show("Errore nella raccolta dei dati, controlla il link e riprova");
             }
+        }
+
+        private void btn_mem_Click(object sender, EventArgs e)
+        {
+            // salvare la lista dati in un file json, in modo da poterli visualizzare in un secondo momento
+
+            string json = JsonConvert.SerializeObject(dati, Formatting.Indented);
+
+            File.WriteAllText("dati.json", json);
+
+            MessageBox.Show("Dati salvati in dati.json");
         }
     }
 }
