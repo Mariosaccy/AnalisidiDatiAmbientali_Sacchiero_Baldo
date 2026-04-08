@@ -28,9 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea3 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend3 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series3 = new System.Windows.Forms.DataVisualization.Charting.Series();
             this.btn_luogo = new System.Windows.Forms.Button();
             this.txt_luogo = new System.Windows.Forms.TextBox();
             this.pnl_luogo = new System.Windows.Forms.Panel();
@@ -44,7 +44,8 @@
             this.lbl_correlazione = new System.Windows.Forms.Label();
             this.lbl_statistiche = new System.Windows.Forms.Label();
             this.dtg_analisi = new System.Windows.Forms.DataGridView();
-            this.chart1 = new System.Windows.Forms.DataVisualization.Charting.Chart();
+            this.chr_grafico = new System.Windows.Forms.DataVisualization.Charting.Chart();
+            this.btn_cancel = new System.Windows.Forms.Button();
             this.pnl_luogo.SuspendLayout();
             this.pnl_dati.SuspendLayout();
             this.tbc_dati.SuspendLayout();
@@ -52,7 +53,7 @@
             this.tbp_grafici.SuspendLayout();
             this.tbp_analisi.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dtg_analisi)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.chart1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.chr_grafico)).BeginInit();
             this.SuspendLayout();
             // 
             // btn_luogo
@@ -102,6 +103,7 @@
             // 
             // tbp_home
             // 
+            this.tbp_home.Controls.Add(this.btn_cancel);
             this.tbp_home.Controls.Add(this.btn_mem);
             this.tbp_home.Controls.Add(this.btn_dati);
             this.tbp_home.Location = new System.Drawing.Point(4, 22);
@@ -115,7 +117,7 @@
             // btn_mem
             // 
             this.btn_mem.Font = new System.Drawing.Font("Microsoft Sans Serif", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btn_mem.Location = new System.Drawing.Point(473, 329);
+            this.btn_mem.Location = new System.Drawing.Point(473, 284);
             this.btn_mem.Name = "btn_mem";
             this.btn_mem.Size = new System.Drawing.Size(120, 44);
             this.btn_mem.TabIndex = 3;
@@ -126,7 +128,7 @@
             // btn_dati
             // 
             this.btn_dati.Font = new System.Drawing.Font("Microsoft Sans Serif", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btn_dati.Location = new System.Drawing.Point(473, 245);
+            this.btn_dati.Location = new System.Drawing.Point(473, 200);
             this.btn_dati.Name = "btn_dati";
             this.btn_dati.Size = new System.Drawing.Size(120, 44);
             this.btn_dati.TabIndex = 2;
@@ -136,7 +138,7 @@
             // 
             // tbp_grafici
             // 
-            this.tbp_grafici.Controls.Add(this.chart1);
+            this.tbp_grafici.Controls.Add(this.chr_grafico);
             this.tbp_grafici.Location = new System.Drawing.Point(4, 22);
             this.tbp_grafici.Name = "tbp_grafici";
             this.tbp_grafici.Padding = new System.Windows.Forms.Padding(3);
@@ -184,21 +186,32 @@
             this.dtg_analisi.Size = new System.Drawing.Size(577, 606);
             this.dtg_analisi.TabIndex = 1;
             // 
-            // chart1
+            // chr_grafico
             // 
-            chartArea1.Name = "ChartArea1";
-            this.chart1.ChartAreas.Add(chartArea1);
-            legend1.Name = "Legend1";
-            this.chart1.Legends.Add(legend1);
-            this.chart1.Location = new System.Drawing.Point(6, 6);
-            this.chart1.Name = "chart1";
-            series1.ChartArea = "ChartArea1";
-            series1.Legend = "Legend1";
-            series1.Name = "Series1";
-            this.chart1.Series.Add(series1);
-            this.chart1.Size = new System.Drawing.Size(1054, 606);
-            this.chart1.TabIndex = 0;
-            this.chart1.Text = "chart1";
+            chartArea3.Name = "ChartArea1";
+            this.chr_grafico.ChartAreas.Add(chartArea3);
+            legend3.Name = "Legend1";
+            this.chr_grafico.Legends.Add(legend3);
+            this.chr_grafico.Location = new System.Drawing.Point(6, 6);
+            this.chr_grafico.Name = "chr_grafico";
+            series3.ChartArea = "ChartArea1";
+            series3.Legend = "Legend1";
+            series3.Name = "Series1";
+            this.chr_grafico.Series.Add(series3);
+            this.chr_grafico.Size = new System.Drawing.Size(1054, 606);
+            this.chr_grafico.TabIndex = 0;
+            this.chr_grafico.Text = "chart1";
+            // 
+            // btn_cancel
+            // 
+            this.btn_cancel.Font = new System.Drawing.Font("Microsoft Sans Serif", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btn_cancel.Location = new System.Drawing.Point(473, 377);
+            this.btn_cancel.Name = "btn_cancel";
+            this.btn_cancel.Size = new System.Drawing.Size(120, 44);
+            this.btn_cancel.TabIndex = 4;
+            this.btn_cancel.Text = "pulisci";
+            this.btn_cancel.UseVisualStyleBackColor = true;
+            this.btn_cancel.Click += new System.EventHandler(this.btn_cancel_Click);
             // 
             // Form1
             // 
@@ -219,7 +232,7 @@
             this.tbp_analisi.ResumeLayout(false);
             this.tbp_analisi.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dtg_analisi)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.chart1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.chr_grafico)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -239,7 +252,8 @@
         private System.Windows.Forms.DataGridView dtg_analisi;
         private System.Windows.Forms.Label lbl_correlazione;
         private System.Windows.Forms.Label lbl_statistiche;
-        private System.Windows.Forms.DataVisualization.Charting.Chart chart1;
+        private System.Windows.Forms.DataVisualization.Charting.Chart chr_grafico;
+        private System.Windows.Forms.Button btn_cancel;
     }
 }
 

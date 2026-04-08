@@ -324,9 +324,65 @@ I risultati dell’analisi dovranno essere presentati tramite:
 
         private void visualGrafici()
         {
+            dati = dati.OrderBy(d => d.DataOra).ToList();
+
             // usa il chart per visualizzare i dati raccolti, in particolare temperatura, pm2.5, pm10 e indice epa, in modo da poter confrontare i dati tra loro e vedere quali sono i più inquinanti.
 
+            chr_grafico.Series.Clear();
+            chr_grafico.Titles.Clear();
 
+            if (dati.Count == 0)
+            {
+                MessageBox.Show("Nessun dato da visualizzare");
+                return;
+            }
+
+            // --- SERIE ---
+            Series sTemp = new Series("Temperatura");
+            Series sPm25 = new Series("PM2.5");
+            Series sPm10 = new Series("PM10");
+            Series sEpa = new Series("Indice EPA");
+
+            // tipo grafico
+            sTemp.ChartType = SeriesChartType.Column;
+            sPm25.ChartType = SeriesChartType.Column;
+            sPm10.ChartType = SeriesChartType.Column;
+            sEpa.ChartType = SeriesChartType.Column;
+
+            // --- AGGIUNTA DATI ---
+            foreach (Cdato d in dati)
+            {
+                string x = d.DataOra.ToString("HH:mm"); // oppure d.Citta
+
+                sTemp.Points.AddXY(x, d.Temperatura);
+                sPm25.Points.AddXY(x, d.Pm25);
+                sPm10.Points.AddXY(x, d.Pm10);
+                sEpa.Points.AddXY(x, d.IndiceEpa);
+            }
+
+            // --- AGGIUNTA AL CHART ---
+            chr_grafico.Series.Add(sTemp);
+            chr_grafico.Series.Add(sPm25);
+            chr_grafico.Series.Add(sPm10);
+            chr_grafico.Series.Add(sEpa);
+
+            // titolo
+            chr_grafico.Titles.Add("Analisi Dati Ambientali");
+
+            // migliora leggibilità
+            chr_grafico.ChartAreas[0].AxisX.Title = "Ora";
+            chr_grafico.ChartAreas[0].AxisY.Title = "Valori";
+
+        }
+
+        private void btn_cancel_Click(object sender, EventArgs e)
+        {
+            // pulisci il file dati.json, in modo da poter ricominciare da capo con la raccolta dei dati, e pulisci anche la lista dati, in modo da non avere più dati in memoria
+            // pulisci anche la lista dati, in modo da non avere più dati in memoria
+
+            dati.Clear();
+
+            File.Delete("dati.json");
         }
     }
 }
