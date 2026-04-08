@@ -11,6 +11,7 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System.Net;
 using System.IO;
+using System.Windows.Forms.DataVisualization.Charting;
 
 namespace AnalisidiDatiAmbientali_Sacchiero_Baldo
 {
@@ -80,6 +81,18 @@ I risultati dell’analisi dovranno essere presentati tramite:
 
             pnl_dati.Visible = false;
             pnl_luogo.Visible = true;
+
+
+            tbc_dati.Selecting += (s, e) =>
+            {
+                if (e.TabPage == tbp_analisi)
+                {
+                    analisi();
+                } else if(e.TabPage == tbp_grafici)
+                {
+                    visualGrafici();
+                }
+            };
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -179,6 +192,141 @@ I risultati dell’analisi dovranno essere presentati tramite:
             File.WriteAllText("dati.json", json);
 
             MessageBox.Show("Dati salvati in dati.json");
+        }
+
+        private string CalcolaStatistiche(List<Cdato> dati)
+        {
+            if (dati.Count == 0) return "Nessun dato disponibile.";
+
+            string s = "📊 STATISTICHE\n";
+            s += "─────────────────────────\n";
+
+            s += $"Temperatura:\n";
+            s += $"  Media:  {dati.Average(d => d.Temperatura):F2} °C\n";
+            s += $"  Min:    {dati.Min(d => d.Temperatura):F2} °C\n";
+            s += $"  Max:    {dati.Max(d => d.Temperatura):F2} °C\n\n";
+
+            s += $"PM2.5:\n";
+            s += $"  Media:  {dati.Average(d => d.Pm25):F2}\n";
+            s += $"  Min:    {dati.Min(d => d.Pm25):F2}\n";
+            s += $"  Max:    {dati.Max(d => d.Pm25):F2}\n\n";
+
+            s += $"PM10:\n";
+            s += $"  Media:  {dati.Average(d => d.Pm10):F2}\n";
+            s += $"  Min:    {dati.Min(d => d.Pm10):F2}\n";
+            s += $"  Max:    {dati.Max(d => d.Pm10):F2}\n\n";
+
+            s += $"Numero rilevazioni: {dati.Count}";
+
+            return s;
+        }
+
+        private string CalcolaCorrelazione(List<Cdato> dati)
+        {
+            if (dati.Count < 2) return "Servono almeno 2 rilevazioni\nper calcolare la correlazione.";
+
+            string s = "🔗 CORRELAZIONE (Pearson)\n";
+            s += "─────────────────────────\n";
+
+            double corrTempPm25 = Pearson(
+                dati.Select(d => d.Temperatura).ToList(),
+                dati.Select(d => d.Pm25).ToList()
+            );
+
+            double corrTempPm10 = Pearson(
+                dati.Select(d => d.Temperatura).ToList(),
+                dati.Select(d => d.Pm10).ToList()
+            );
+
+            double corrPm25Pm10 = Pearson(
+                dati.Select(d => d.Pm25).ToList(),
+                dati.Select(d => d.Pm10).ToList()
+            );
+
+            s += $"Temp ↔ PM2.5:  {corrTempPm25:F3}  {Interpreta(corrTempPm25)}\n\n";
+            s += $"Temp ↔ PM10:   {corrTempPm10:F3}  {Interpreta(corrTempPm10)}\n\n";
+            s += $"PM2.5 ↔ PM10:  {corrPm25Pm10:F3}  {Interpreta(corrPm25Pm10)}\n\n";
+
+            s += "─────────────────────────\n";
+            s += "Da -1 a +1:\n";
+            s += "+1 = correlazione positiva\n";
+            s += " 0 = nessuna correlazione\n";
+            s += "-1 = correlazione negativa";
+
+            return s;
+        }
+
+        private double Pearson(List<double> x, List<double> y)
+        {
+            double mediaX = x.Average();
+            double mediaY = y.Average();
+
+            double numeratore = x.Zip(y, (xi, yi) => (xi - mediaX) * (yi - mediaY)).Sum();
+            double devX = Math.Sqrt(x.Sum(xi => Math.Pow(xi - mediaX, 2)));
+            double devY = Math.Sqrt(y.Sum(yi => Math.Pow(yi - mediaY, 2)));
+
+            if (devX == 0 || devY == 0) return 0;
+
+            return numeratore / (devX * devY);
+        }
+
+        private string Interpreta(double r)
+        {
+            double abs = Math.Abs(r);
+            string direzione = r >= 0 ? "positiva" : "negativa";
+
+            if (abs >= 0.8) return $"(forte {direzione})";
+            if (abs >= 0.5) return $"(moderata {direzione})";
+            if (abs >= 0.2) return $"(debole {direzione})";
+            return "(nessuna correlazione)";
+        }
+
+        private void analisi()
+        {
+            // svuota la griglia esistente
+            dtg_analisi.Rows.Clear();
+            dtg_analisi.Columns.Clear();
+
+            dtg_analisi.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dtg_analisi.ReadOnly = true;
+            dtg_analisi.AllowUserToAddRows = false;
+            dtg_analisi.AllowUserToDeleteRows = false;
+            dtg_analisi.AllowUserToResizeRows = false;
+            dtg_analisi.RowHeadersVisible = false;
+
+            // aggiungi le colonne
+            dtg_analisi.Columns.Add("Citta", "Città");
+            dtg_analisi.Columns.Add("DataOra", "Data e Ora");
+            dtg_analisi.Columns.Add("Temperatura", "Temp (°C)");
+            dtg_analisi.Columns.Add("Pm25", "PM2.5");
+            dtg_analisi.Columns.Add("Pm10", "PM10");
+            dtg_analisi.Columns.Add("IndiceEpa", "Indice EPA");
+
+            // riempi con i dati
+            foreach (Cdato d in dati)
+            {
+                dtg_analisi.Rows.Add(
+                    d.Citta,
+                    d.DataOra.ToString("dd/MM/yyyy HH:mm"),
+                    d.Temperatura,
+                    d.Pm25,
+                    d.Pm10,
+                    d.IndiceEpa
+                );
+            }
+
+            // --- STATISTICHE ---
+            lbl_statistiche.Text = CalcolaStatistiche(dati);
+
+            // --- CORRELAZIONE ---
+            lbl_correlazione.Text = CalcolaCorrelazione(dati);
+        }
+
+        private void visualGrafici()
+        {
+            // usa il chart per visualizzare i dati raccolti, in particolare temperatura, pm2.5, pm10 e indice epa, in modo da poter confrontare i dati tra loro e vedere quali sono i più inquinanti.
+
+
         }
     }
 }
