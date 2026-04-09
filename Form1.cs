@@ -19,7 +19,7 @@ namespace AnalisidiDatiAmbientali_Sacchiero_Baldo
     /*
      in questo progetto andiamo a analizzare i dati ambientali di una città, in particolare andremo a prendere i dati di temperatura, pm2.5, pm10 e indice epa, per poi visualizzarli in un grafico a barre, in modo da poter confrontare i dati tra loro e vedere quali sono i più inquinanti. Per fare questo utilizzeremo l'api di weatherapi.com, che ci permette di prendere i dati ambientali di una città in formato json, per poi deserializzarli e visualizzarli in un grafico a barre.
      facciamo una richiasta ad un'api: http://api.weatherapi.com/v1/current.json?key=12ca28e7f1874769a00142930260604&q=Luogo&aqi=yes
-     ci facciamo dare un file json, che contiene i dati ambientali di una città, in questo caso Vicenza, e poi deserializziamo il file json per prendere i dati che ci interessano, in particolare la temperatura, pm2.5, pm10 e indice epa, per poi visualizzarli in un grafico a barre.
+     ci facciamo dare un file json, che contiene i dati ambientali di una città, e poi deserializziamo il file json per prendere i dati che ci interessano, in particolare la temperatura, pm2.5, pm10 e indice epa, per poi visualizzarli in un grafico a barre.
      li mettiamo in una lista di classi dato
      si aggiorna ogni volta che si preme un pulsante
      
@@ -29,44 +29,6 @@ namespace AnalisidiDatiAmbientali_Sacchiero_Baldo
      
      infine rappresentare con dei grafici
      */
-
-    /*
-     PARTE 2 – Sviluppo dell’applicazione software
-Sviluppare un’applicazione software utilizzando il linguaggio C#.
-Obiettivo dell’applicazione
-L’applicazione dovrà raccogliere dati dal web relativi a:
-• temperatura
-• livello di inquinamento atmosferico
-e analizzarli per individuare eventuali correlazioni tra le due variabili.
-
-Funzionalità richieste
-Raccolta dati
-Il programma deve:
-• collegarsi a un servizio web tramite API
-• recuperare dati meteorologici e ambientali
-• estrarre le informazioni utili
-I dati minimi da raccogliere sono:
-• data e ora
-• temperatura
-• indice di qualità dell’aria o livello di inquinamento
-
-Memorizzazione dei dati
-I dati raccolti dovranno essere salvati in modo strutturato, ad esempio in:
-• file CSV
-• file JSON
-• database
-
-Analisi dei dati
-Il programma dovrà permettere di:
-• visualizzare i dati raccolti
-• confrontare i valori nel tempo
-• individuare possibili relazioni tra temperatura e inquinamento
-
-Visualizzazione
-I risultati dell’analisi dovranno essere presentati tramite:
-• tabelle
-• grafici
-• riepiloghi statistici*/
     public partial class Form1 : Form
     {
         string Link;
@@ -156,6 +118,22 @@ I risultati dell’analisi dovranno essere presentati tramite:
 
             try
             {
+                ScaricaDato();
+                MessageBox.Show("Dati raccolti con successo");
+            }
+            catch
+            {
+                MessageBox.Show("Errore nella raccolta dei dati, controlla il link e riprova");
+            }
+            
+
+
+        }
+
+        private void ScaricaDato()
+        {
+            try
+            {
                 // manda una richiesta al link e prende la risposta in formato json
 
                 using (WebClient client = new WebClient())
@@ -175,7 +153,6 @@ I risultati dell’analisi dovranno essere presentati tramite:
                     );
 
                     dati.Add(dato);
-                    MessageBox.Show($"Dato aggiunto! Temperatura: {dato.Temperatura}°C, PM2.5: {dato.Pm25}");
 
                 }
 
@@ -184,6 +161,7 @@ I risultati dell’analisi dovranno essere presentati tramite:
             catch
             {
                 MessageBox.Show("Errore nella raccolta dei dati, controlla il link e riprova");
+                throw; // rilancia l'eccezione per essere gestita nel chiamante
             }
         }
 
@@ -403,6 +381,42 @@ I risultati dell’analisi dovranno essere presentati tramite:
 
             lbl_dataOdierna.Text = DateTime.Now.ToString("dd/MM/yyyy");
 
+        }
+
+        private void btn_datiAuto_Click(object sender, EventArgs e)
+        {
+            if (tmr_raccoltaDatiAuto.Enabled)
+            {
+                tmr_raccoltaDatiAuto.Stop();
+                btn_datiAuto.Text = "RACCOGLI DATI AUTO";
+            }
+            else
+            {
+                tmr_raccoltaDatiAuto.Interval = 30000;
+                tmr_raccoltaDatiAuto.Start();
+                btn_datiAuto.Text = "STOP";
+
+                try
+                {
+                    ScaricaDato();
+                }
+                catch
+                {
+                    MessageBox.Show("Errore nella raccolta dei dati, controlla il link e riprova");
+                }
+            }
+        }
+
+        private void tmr_raccoltaDatiAuto_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                ScaricaDato();
+            }
+            catch
+            {
+                MessageBox.Show("Errore nella raccolta dei dati, controlla il link e riprova");
+            }
         }
     }
 }
