@@ -131,6 +131,7 @@ I risultati dell’analisi dovranno essere presentati tramite:
             catch (Exception ex)
             {
                 MessageBox.Show("Link non valido: " + ex.Message);
+                txt_luogo.Text = "";
                 return;
             }
 
@@ -138,9 +139,9 @@ I risultati dell’analisi dovranno essere presentati tramite:
             MessageBox.Show("Link valido, puoi procedere con la raccolta dei dati");
 
             // prende i dati da un possibile file dati.json creato in precenza
-            if (File.Exists($"{luogo}.json"))
+            if (File.Exists($"files/{luogo}.json"))
             {
-                string json = File.ReadAllText($"{luogo}.json");
+                string json = File.ReadAllText($"files/{luogo}.json");
                 dati = JsonConvert.DeserializeObject<List<Cdato>>(json);
             }
 
@@ -194,7 +195,7 @@ I risultati dell’analisi dovranno essere presentati tramite:
 
             string nomeCitta = txt_luogo.Text.Trim().ToLower();
 
-            File.WriteAllText($"{nomeCitta}.json", json);
+            File.WriteAllText($"files/{nomeCitta}.json", json);
 
             MessageBox.Show($"Dati salvati in {nomeCitta}.json");
         }
@@ -263,16 +264,19 @@ I risultati dell’analisi dovranno essere presentati tramite:
 
         private double Pearson(List<double> x, List<double> y)
         {
-            double mediaX = x.Average();
-            double mediaY = y.Average();
+            double mediaX = x.Average(); // calcola la media di x
+            double mediaY = y.Average(); // calcola la media di y
 
-            double numeratore = x.Zip(y, (xi, yi) => (xi - mediaX) * (yi - mediaY)).Sum();
-            double devX = Math.Sqrt(x.Sum(xi => Math.Pow(xi - mediaX, 2)));
-            double devY = Math.Sqrt(y.Sum(yi => Math.Pow(yi - mediaY, 2)));
+            double numeratore = x.Zip(y, (xi, yi) => (xi - mediaX) * (yi - mediaY)).Sum(); // calcola il numeratore della formula di Pearson, il sum serve per sommare tutti i prodotti (xi - mediaX) * (yi - mediaY) per ogni coppia di valori xi e yi
+            double devX = Math.Sqrt(x.Sum(xi => Math.Pow(xi - mediaX, 2))); // calcola la dispersione dei dati di x
+            double devY = Math.Sqrt(y.Sum(yi => Math.Pow(yi - mediaY, 2))); // calcola la dispersione dei dati di y
 
-            if (devX == 0 || devY == 0) return 0;
+            if (devX == 0 || devY == 0) // se la dispersione dei dati x o y è zero, significa che tutti i valori sono uguali, quindi non c'è correlazione, restituisci 0 per evitare divisione per zero
+            {
+                return 0; // nessuna correlazione se una delle due variabili è costante
+            }
 
-            return numeratore / (devX * devY);
+            return numeratore / (devX * devY); // restituisce il coefficiente di correlazione di Pearson, che va da -1 a +1, dove +1 indica una correlazione positiva perfetta, -1 indica una correlazione negativa perfetta, e 0 indica nessuna correlazione.
         }
 
         private string Interpreta(double r)
@@ -297,6 +301,7 @@ I risultati dell’analisi dovranno essere presentati tramite:
             dtg_analisi.AllowUserToAddRows = false;
             dtg_analisi.AllowUserToDeleteRows = false;
             dtg_analisi.AllowUserToResizeRows = false;
+            dtg_analisi.AllowUserToResizeColumns = false;
             dtg_analisi.RowHeadersVisible = false;
 
             // aggiungi le colonne
@@ -325,7 +330,7 @@ I risultati dell’analisi dovranno essere presentati tramite:
 
             // --- CORRELAZIONE ---
             lbl_correlazione.Text = CalcolaCorrelazione(dati);
-        }
+        }   
 
         private void visualGrafici()
         {
@@ -389,7 +394,7 @@ I risultati dell’analisi dovranno essere presentati tramite:
 
             string nomeCitta = txt_luogo.Text.Trim().ToLower();
 
-            File.Delete($"{nomeCitta}.json");
+            File.Delete($"files/{nomeCitta}.json");
         }
 
         private void timer1_Tick(object sender, EventArgs e)
