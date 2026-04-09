@@ -202,7 +202,7 @@ namespace AnalisidiDatiAmbientali_Sacchiero_Baldo
         {
             if (dati.Count == 0) return "Nessun dato disponibile.";
 
-            string s = "📊 STATISTICHE\n";
+            string s = "STATISTICHE\n";
             s += "─────────────────────────\n";
 
             s += $"Temperatura:\n";
@@ -229,7 +229,7 @@ namespace AnalisidiDatiAmbientali_Sacchiero_Baldo
         {
             if (dati.Count < 2) return "Servono almeno 2 rilevazioni\nper calcolare la correlazione.";
 
-            string s = "🔗 CORRELAZIONE (Pearson)\n";
+            string s = "CORRELAZIONE\n";
             s += "─────────────────────────\n";
 
             double corrTempPm25 = Pearson(
