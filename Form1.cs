@@ -93,6 +93,9 @@ I risultati dell’analisi dovranno essere presentati tramite:
                     visualGrafici();
                 }
             };
+
+            timer1.Enabled = true;
+            timer1.Interval = 1000; // 1 secondo
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -135,9 +138,9 @@ I risultati dell’analisi dovranno essere presentati tramite:
             MessageBox.Show("Link valido, puoi procedere con la raccolta dei dati");
 
             // prende i dati da un possibile file dati.json creato in precenza
-            if (File.Exists("dati.json"))
+            if (File.Exists($"{luogo}.json"))
             {
-                string json = File.ReadAllText("dati.json");
+                string json = File.ReadAllText($"{luogo}.json");
                 dati = JsonConvert.DeserializeObject<List<Cdato>>(json);
             }
 
@@ -189,9 +192,11 @@ I risultati dell’analisi dovranno essere presentati tramite:
 
             string json = JsonConvert.SerializeObject(dati, Formatting.Indented);
 
-            File.WriteAllText("dati.json", json);
+            string nomeCitta = txt_luogo.Text.Trim().ToLower();
 
-            MessageBox.Show("Dati salvati in dati.json");
+            File.WriteAllText($"{nomeCitta}.json", json);
+
+            MessageBox.Show($"Dati salvati in {nomeCitta}.json");
         }
 
         private string CalcolaStatistiche(List<Cdato> dati)
@@ -382,7 +387,17 @@ I risultati dell’analisi dovranno essere presentati tramite:
 
             dati.Clear();
 
-            File.Delete("dati.json");
+            string nomeCitta = txt_luogo.Text.Trim().ToLower();
+
+            File.Delete($"{nomeCitta}.json");
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            lbl_orario.Text = DateTime.Now.ToString("HH:mm:ss");
+
+            lbl_dataOdierna.Text = DateTime.Now.ToString("dd/MM/yyyy");
+
         }
     }
 }
