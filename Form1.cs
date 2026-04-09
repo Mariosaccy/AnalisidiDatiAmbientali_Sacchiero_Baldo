@@ -35,6 +35,8 @@ namespace AnalisidiDatiAmbientali_Sacchiero_Baldo
 
         List<Cdato> dati = new List<Cdato>();
 
+        string nomeCittaReale;
+
         public Form1()
         {
             InitializeComponent();
@@ -83,16 +85,9 @@ namespace AnalisidiDatiAmbientali_Sacchiero_Baldo
             Link = $"http://api.weatherapi.com/v1/current.json?key=12ca28e7f1874769a00142930260604&q={luogo}&aqi=yes";
 
             // prova a pingare o altro per controllare che il link sia valido, se non è valido mostra un messaggio di errore
-
-            try
+            if (!LuogoValido(Link))
             {
-                System.Net.WebRequest request = System.Net.WebRequest.Create(Link);
-                System.Net.WebResponse response = request.GetResponse();
-                response.Close();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Link non valido: " + ex.Message);
+                MessageBox.Show("Luogo non valido");
                 txt_luogo.Text = "";
                 return;
             }
@@ -100,16 +95,40 @@ namespace AnalisidiDatiAmbientali_Sacchiero_Baldo
             // se il link è valido, mostra un messaggio di conferma
             MessageBox.Show("Link valido, puoi procedere con la raccolta dei dati");
 
+            ScaricaDato();
+
+            dati.Clear();
+
             // prende i dati da un possibile file dati.json creato in precenza
-            if (File.Exists($"files/{luogo}.json"))
+            if (File.Exists($"files/{nomeCittaReale.ToLower()}.json"))
             {
-                string json = File.ReadAllText($"files/{luogo}.json");
+                string json = File.ReadAllText($"files/{nomeCittaReale.ToLower()}.json");
                 dati = JsonConvert.DeserializeObject<List<Cdato>>(json);
             }
 
             pnl_luogo.Visible = false;
             pnl_dati.Visible = true;
 
+        }
+
+        private bool LuogoValido(string link)
+        {
+            try
+            {
+                using (WebClient client = new WebClient())
+                {
+                    string risposta = client.DownloadString(link);
+
+                    JObject json = JObject.Parse(risposta);
+
+                    // se esiste questa chiave → è valido
+                    return json["location"] != null;
+                }
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private void btn_dati_Click(object sender, EventArgs e)
@@ -152,6 +171,8 @@ namespace AnalisidiDatiAmbientali_Sacchiero_Baldo
                         (int)json["current"]["air_quality"]["us-epa-index"]
                     );
 
+                    nomeCittaReale = json["location"]["name"].ToString();
+
                     dati.Add(dato);
 
                 }
@@ -171,11 +192,10 @@ namespace AnalisidiDatiAmbientali_Sacchiero_Baldo
 
             string json = JsonConvert.SerializeObject(dati, Formatting.Indented);
 
-            string nomeCitta = txt_luogo.Text.Trim().ToLower();
 
-            File.WriteAllText($"files/{nomeCitta}.json", json);
+            File.WriteAllText($"files/{nomeCittaReale.ToLower()}.json", json);
 
-            MessageBox.Show($"Dati salvati in {nomeCitta}.json");
+            MessageBox.Show($"Dati salvati in {nomeCittaReale.ToLower()}.json");
         }
 
         private string CalcolaStatistiche(List<Cdato> dati)
@@ -370,9 +390,7 @@ namespace AnalisidiDatiAmbientali_Sacchiero_Baldo
 
             dati.Clear();
 
-            string nomeCitta = txt_luogo.Text.Trim().ToLower();
-
-            File.Delete($"files/{nomeCitta}.json");
+            File.Delete($"files/{nomeCittaReale.ToLower()}.json");
         }
 
         private void timer1_Tick(object sender, EventArgs e)
