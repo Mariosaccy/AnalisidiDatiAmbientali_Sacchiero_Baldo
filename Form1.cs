@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -85,7 +85,7 @@ namespace AnalisidiDatiAmbientali_Sacchiero_Baldo
             Link = $"http://api.weatherapi.com/v1/current.json?key=12ca28e7f1874769a00142930260604&q={luogo}&aqi=yes";
 
             // prova a pingare o altro per controllare che il link sia valido, se non è valido mostra un messaggio di errore
-            if (!LuogoValido(Link))
+            if (LuogoValido(Link))
             {
                 MessageBox.Show("Luogo non valido");
                 txt_luogo.Text = "";
@@ -95,14 +95,11 @@ namespace AnalisidiDatiAmbientali_Sacchiero_Baldo
             // se il link è valido, mostra un messaggio di conferma
             MessageBox.Show("Link valido, puoi procedere con la raccolta dei dati");
 
-            ScaricaDato();
-
-            dati.Clear();
-
             // prende i dati da un possibile file dati.json creato in precenza
             if (File.Exists($"files/{nomeCittaReale.ToLower()}.json"))
             {
                 string json = File.ReadAllText($"files/{nomeCittaReale.ToLower()}.json");
+
                 dati = JsonConvert.DeserializeObject<List<Cdato>>(json);
             }
 
@@ -122,12 +119,20 @@ namespace AnalisidiDatiAmbientali_Sacchiero_Baldo
                     JObject json = JObject.Parse(risposta);
 
                     // se esiste questa chiave → è valido
-                    return json["location"] != null;
+                    if(json["location"] == null)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        nomeCittaReale = json["location"]["name"].ToString();
+                        return false;
+                    }
                 }
             }
             catch
             {
-                return false;
+                return true;
             }
         }
 
@@ -144,9 +149,6 @@ namespace AnalisidiDatiAmbientali_Sacchiero_Baldo
             {
                 MessageBox.Show("Errore nella raccolta dei dati, controlla il link e riprova");
             }
-            
-
-
         }
 
         private void ScaricaDato()
@@ -168,7 +170,7 @@ namespace AnalisidiDatiAmbientali_Sacchiero_Baldo
                         (double)json["current"]["temp_c"],
                         (double)json["current"]["air_quality"]["pm2_5"],
                         (double)json["current"]["air_quality"]["pm10"],
-                        (int)json["current"]["air_quality"]["us-epa-index"]
+                        (int)json["current"]["air_quality"]["us-epa-index"] // da 1 a 6 
                     );
 
                     nomeCittaReale = json["location"]["name"].ToString();
@@ -177,11 +179,9 @@ namespace AnalisidiDatiAmbientali_Sacchiero_Baldo
 
                 }
 
-
             }
             catch
             {
-                MessageBox.Show("Errore nella raccolta dei dati, controlla il link e riprova");
                 throw; // rilancia l'eccezione per essere gestita nel chiamante
             }
         }
@@ -195,12 +195,16 @@ namespace AnalisidiDatiAmbientali_Sacchiero_Baldo
 
             File.WriteAllText($"files/{nomeCittaReale.ToLower()}.json", json);
 
+
             MessageBox.Show($"Dati salvati in {nomeCittaReale.ToLower()}.json");
         }
 
         private string CalcolaStatistiche(List<Cdato> dati)
         {
-            if (dati.Count == 0) return "Nessun dato disponibile.";
+            if (dati.Count == 0)
+            {
+                return "Nessun dato disponibile.";
+            }
 
             string s = "STATISTICHE\n";
             s += "─────────────────────────\n";
@@ -227,22 +231,22 @@ namespace AnalisidiDatiAmbientali_Sacchiero_Baldo
 
         private string CalcolaCorrelazione(List<Cdato> dati)
         {
-            if (dati.Count < 2) return "Servono almeno 2 rilevazioni\nper calcolare la correlazione.";
+            if (dati.Count < 2)
+            {
+                return "Servono almeno 2 rilevazioni\nper calcolare la correlazione.";
+            }
 
             string s = "CORRELAZIONE\n";
             s += "─────────────────────────\n";
 
-            double corrTempPm25 = Pearson(
-                dati.Select(d => d.Temperatura).ToList(),
-                dati.Select(d => d.Pm25).ToList()
-            );
+            double corrTempPm25 = Correlation(dati.Select(d => d.Temperatura).ToList(), dati.Select(d => d.Pm25).ToList() );
 
-            double corrTempPm10 = Pearson(
+            double corrTempPm10 = Correlation(
                 dati.Select(d => d.Temperatura).ToList(),
                 dati.Select(d => d.Pm10).ToList()
             );
 
-            double corrPm25Pm10 = Pearson(
+            double corrPm25Pm10 = Correlation(
                 dati.Select(d => d.Pm25).ToList(),
                 dati.Select(d => d.Pm10).ToList()
             );
@@ -260,31 +264,41 @@ namespace AnalisidiDatiAmbientali_Sacchiero_Baldo
             return s;
         }
 
-        private double Pearson(List<double> x, List<double> y)
+        private double Correlation(List<double> dato1, List<double> dato2)
         {
-            double mediaX = x.Average(); // calcola la media di x
-            double mediaY = y.Average(); // calcola la media di y
+            double media1 = dato1.Average(); // calcola la media di dato1
+            double media2 = dato2.Average(); // calcola la media di dato2
 
-            double numeratore = x.Zip(y, (xi, yi) => (xi - mediaX) * (yi - mediaY)).Sum(); // calcola il numeratore della formula di Pearson, il sum serve per sommare tutti i prodotti (xi - mediaX) * (yi - mediaY) per ogni coppia di valori xi e yi
-            double devX = Math.Sqrt(x.Sum(xi => Math.Pow(xi - mediaX, 2))); // calcola la dispersione dei dati di x
-            double devY = Math.Sqrt(y.Sum(yi => Math.Pow(yi - mediaY, 2))); // calcola la dispersione dei dati di y
+            double numeratore = dato1.Zip(dato2, (d1i, d2i) => (d1i - media1) * (d2i - media2)).Sum(); // calcola il numeratore della formula di Pearson, il sum serve per sommare tutti i prodotti (d1i - media1) * (d2i - media2) per ogni coppia di valori d1i e d2i
 
-            if (devX == 0 || devY == 0) // se la dispersione dei dati x o y è zero, significa che tutti i valori sono uguali, quindi non c'è correlazione, restituisci 0 per evitare divisione per zero
+            double dev1 = Math.Sqrt(dato1.Sum(xi => Math.Pow(xi - media1, 2))); // calcola la dispersione dei dati di dato1
+            double dev2 = Math.Sqrt(dato2.Sum(yi => Math.Pow(yi - media2, 2))); // calcola la dispersione dei dati di dato2
+
+            if (dev1 == 0 || dev2 == 0) // se la dispersione dei dati 1 o 2 è zero, significa che tutti i valori sono uguali, quindi non c'è correlazione, restituisci 0 per evitare divisione per zero
             {
                 return 0; // nessuna correlazione se una delle due variabili è costante
             }
 
-            return numeratore / (devX * devY); // restituisce il coefficiente di correlazione di Pearson, che va da -1 a +1, dove +1 indica una correlazione positiva perfetta, -1 indica una correlazione negativa perfetta, e 0 indica nessuna correlazione.
+            return numeratore / (dev1 * dev2); // restituisce il coefficiente di correlazione di Pearson, che va da -1 a +1, dove +1 indica una correlazione positiva perfetta, -1 indica una correlazione negativa perfetta, e 0 indica nessuna correlazione.
         }
 
         private string Interpreta(double r)
         {
             double abs = Math.Abs(r);
-            string direzione = r >= 0 ? "positiva" : "negativa";
+            string direzione =( r >= 0 ? "positiva" : "negativa");
 
-            if (abs >= 0.8) return $"(forte {direzione})";
-            if (abs >= 0.5) return $"(moderata {direzione})";
-            if (abs >= 0.2) return $"(debole {direzione})";
+            if (abs >= 0.8)
+            {
+                return $"(forte {direzione})";
+            }
+            if (abs >= 0.5)
+            {
+                return $"(moderata {direzione})";
+            }
+            if (abs >= 0.2)
+            {
+                return $"(debole {direzione})";
+            }
             return "(nessuna correlazione)";
         }
 
