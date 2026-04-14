@@ -366,10 +366,13 @@ namespace AnalisidiDatiAmbientali_Sacchiero_Baldo
             Series sEpa = new Series("Indice EPA");
 
             // tipo grafico
-            sTemp.ChartType = SeriesChartType.Column;
-            sPm25.ChartType = SeriesChartType.Column;
-            sPm10.ChartType = SeriesChartType.Column;
-            sEpa.ChartType = SeriesChartType.Column;
+            sTemp.ChartType = SeriesChartType.Line;
+            sPm25.ChartType = SeriesChartType.Line;
+            sPm10.ChartType = SeriesChartType.Line;
+            sEpa.ChartType = SeriesChartType.Line;
+
+            sTemp.BorderWidth = 3;
+            sTemp.MarkerStyle = MarkerStyle.Circle;
 
             // --- AGGIUNTA DATI ---
             foreach (Cdato d in dati)
